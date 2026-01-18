@@ -1,5 +1,5 @@
 {
-  "name": "omnivault:-smart-inventory-assistant",
+  "name": "ownly:-smart-inventory-assistant",
   "private": true,
   "version": "0.0.0",
   "type": "module",
@@ -12,7 +12,11 @@
     "react": "^19.2.3",
     "@google/genai": "^1.37.0",
     "react-dom": "^19.2.3",
-    "lucide-react": "^0.562.0"
+    "lucide-react": "^0.562.0",
+    "lucide-react-native": "^0.562.0",
+    "@react-native-async-storage/async-storage": "^2.2.0",
+    "expo-image-picker": "^17.0.10",
+    "react-native": "^0.83.1"
   },
   "devDependencies": {
     "@types/node": "^22.14.0",

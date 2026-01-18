@@ -106,7 +106,7 @@ export const chatWithAssistant = async (query: string, inventory: InventoryItem[
 
   const response = await ai.models.generateContent({
     model: 'gemini-3-flash-preview',
-    contents: `Inventory:\n${context}\n\nUser Question: ${query}\n\nYou are OmniVault AI. Answer based on the inventory list provided above.`,
+    contents: `Inventory:\n${context}\n\nUser Question: ${query}\n\nYou are Ownly AI. Answer based on the inventory list provided above.`,
   });
 
   return response.text || "I don't have enough info to answer that.";

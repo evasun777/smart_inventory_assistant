@@ -1,7 +1,7 @@
 
 import { InventoryItem } from "../types";
 
-const DB_NAME = 'OmniVaultDB';
+const DB_NAME = 'OwnlyDB';
 const STORE_NAME = 'inventory';
 const DB_VERSION = 2; // Incremented version
 
