@@ -7,9 +7,13 @@ export interface InventoryItem {
   storageLocation: string;
   dateAdded: string;
   expiryDate?: string;
+  datePurchased?: string;
   price?: number;
   imageUrl?: string;
   isDuplicate?: boolean;
+  color?: string;
+  size?: string;
+  brand?: string;
 }
 
 export type ViewMode = 'grid' | 'list';

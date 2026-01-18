@@ -1,11 +1,13 @@
 
 import { GoogleGenAI, Type } from "@google/genai";
-import { InventoryItem } from "../types";
+import { InventoryItem, Category } from "../types";
 
 const API_KEY = process.env.API_KEY || '';
 
 export const analyzeStoragePhoto = async (base64Image: string): Promise<Partial<InventoryItem>[]> => {
   const ai = new GoogleGenAI({ apiKey: API_KEY });
+  const allowedCategories = Object.values(Category).join(", ");
+  
   const response = await ai.models.generateContent({
     model: 'gemini-3-flash-preview',
     contents: [
@@ -18,7 +20,20 @@ export const analyzeStoragePhoto = async (base64Image: string): Promise<Partial<
             },
           },
           {
-            text: "Analyze this photo of a storage box or area. Identify all distinct items inside. Return a JSON array of objects with the following keys: 'name', 'description', 'category' (one of: Food, Clothes, Gym, Tools, Electronics, Other), 'estimatedPrice' (numeric), and 'storageLocation' (based on context of photo or box label).",
+            text: `Analyze this photo of storage. Identify every distinct item. 
+            For each item, return a JSON object with:
+            - 'name': specific name
+            - 'brand': brand name (if visible)
+            - 'color': primary color
+            - 'size': dimensions or size (S/M/L or cm/in)
+            - 'description': short detail
+            - 'category': MUST be exactly one of: [${allowedCategories}]
+            - 'price': estimated numeric value
+            - 'storageLocation': where it is in the photo
+            - 'datePurchased': YYYY-MM-DD (estimate if unknown)
+            - 'expiryDate': YYYY-MM-DD (if applicable)
+            
+            Return ONLY a JSON array.`,
           },
         ],
       },
@@ -31,10 +46,15 @@ export const analyzeStoragePhoto = async (base64Image: string): Promise<Partial<
           type: Type.OBJECT,
           properties: {
             name: { type: Type.STRING },
+            brand: { type: Type.STRING },
+            color: { type: Type.STRING },
+            size: { type: Type.STRING },
             description: { type: Type.STRING },
             category: { type: Type.STRING },
-            estimatedPrice: { type: Type.NUMBER },
+            price: { type: Type.NUMBER },
             storageLocation: { type: Type.STRING },
+            datePurchased: { type: Type.STRING },
+            expiryDate: { type: Type.STRING },
           },
           required: ["name", "category"],
         },
@@ -43,7 +63,8 @@ export const analyzeStoragePhoto = async (base64Image: string): Promise<Partial<
   });
 
   try {
-    return JSON.parse(response.text || "[]");
+    const text = response.text || "[]";
+    return JSON.parse(text);
   } catch (e) {
     console.error("Failed to parse AI response", e);
     return [];
@@ -53,7 +74,8 @@ export const analyzeStoragePhoto = async (base64Image: string): Promise<Partial<
 export const getShoppingAdvice = async (base64Image: string, currentInventory: InventoryItem[]): Promise<string> => {
   const ai = new GoogleGenAI({ apiKey: API_KEY });
   const inventorySummary = currentInventory
-    .map(i => `${i.name} (${i.category}) in ${i.storageLocation}`)
+    .map(i => `${i.brand || ''} ${i.name} (${i.color || ''})`)
+    .slice(0, 20) // Limit to avoid token issues
     .join(', ');
 
   const response = await ai.models.generateContent({
@@ -68,29 +90,24 @@ export const getShoppingAdvice = async (base64Image: string, currentInventory: I
             },
           },
           {
-            text: `The user is considering buying the item in this photo. Based on their current inventory: [${inventorySummary}], should they buy it? If they have something similar, tell them where it is. If it's a good addition, explain why. Keep it concise and helpful.`,
+            text: `The user wants to buy this. They already have: [${inventorySummary}]. Should they buy it? Be decisive and helpful.`,
           },
         ],
       },
     ],
   });
 
-  return response.text || "I'm not sure, but checking your inventory is always a good idea!";
+  return response.text || "I'm not sure. Check your vault manually!";
 };
 
 export const chatWithAssistant = async (query: string, inventory: InventoryItem[]): Promise<string> => {
   const ai = new GoogleGenAI({ apiKey: API_KEY });
-  const inventoryContext = JSON.stringify(inventory.map(i => ({
-    name: i.name,
-    location: i.storageLocation,
-    cat: i.category,
-    added: i.dateAdded
-  })));
+  const context = inventory.map(i => `${i.name} (${i.category}) in ${i.storageLocation}`).join("\n");
 
   const response = await ai.models.generateContent({
     model: 'gemini-3-flash-preview',
-    contents: `User Query: "${query}"\n\nInventory Data: ${inventoryContext}\n\nYou are a helpful home inventory assistant. Answer questions about where things are, suggest what to declutter (oldest items), or find items by description.`,
+    contents: `Inventory:\n${context}\n\nUser Question: ${query}\n\nYou are OmniVault AI. Answer based on the inventory list provided above.`,
   });
 
-  return response.text || "I couldn't find an answer to that.";
+  return response.text || "I don't have enough info to answer that.";
 };
