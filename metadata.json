@@ -1,0 +1,8 @@
+{
+  "name": "OmniVault: Smart Inventory Assistant",
+  "description": "An AI-powered inventory management app that uses vision to track belongings, find items, and provide smart shopping advice based on your existing home inventory.",
+  "requestFramePermissions": [
+    "camera",
+    "microphone"
+  ]
+}
