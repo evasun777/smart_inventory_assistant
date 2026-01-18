@@ -3,12 +3,12 @@ import { InventoryItem } from "../types";
 
 const DB_NAME = 'OmniVaultDB';
 const STORE_NAME = 'inventory';
-const DB_VERSION = 1;
+const DB_VERSION = 2; // Incremented version
 
 const openDB = (): Promise<IDBDatabase> => {
   return new Promise((resolve, reject) => {
     const request = indexedDB.open(DB_NAME, DB_VERSION);
-    request.onupgradeneeded = () => {
+    request.onupgradeneeded = (event: any) => {
       const db = request.result;
       if (!db.objectStoreNames.contains(STORE_NAME)) {
         db.createObjectStore(STORE_NAME, { keyPath: 'id' });
@@ -24,18 +24,15 @@ export const saveInventory = async (items: InventoryItem[]) => {
   const tx = db.transaction(STORE_NAME, 'readwrite');
   const store = tx.objectStore(STORE_NAME);
   
-  // Clear existing to sync fresh state
-  await new Promise<void>((resolve) => {
-    const clearReq = store.clear();
-    clearReq.onsuccess = () => resolve();
-  });
-
+  // Use clear/put for absolute sync, but wrapped in a single transaction for speed
+  store.clear();
   for (const item of items) {
-    store.put(item);
+    store.add(item);
   }
   
-  return new Promise<void>((resolve) => {
+  return new Promise<void>((resolve, reject) => {
     tx.oncomplete = () => resolve();
+    tx.onerror = () => reject(tx.error);
   });
 };
 
@@ -54,4 +51,10 @@ export const loadInventory = async (): Promise<InventoryItem[]> => {
     console.error("Failed to load IndexedDB", e);
     return [];
   }
+};
+
+export const clearAllData = async () => {
+  const db = await openDB();
+  const tx = db.transaction(STORE_NAME, 'readwrite');
+  tx.objectStore(STORE_NAME).clear();
 };
