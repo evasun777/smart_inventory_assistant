@@ -627,14 +627,33 @@ const App: React.FC = () => {
             <button onClick={() => setIsChatOpen(false)} className="p-2 text-slate-400"><ChevronLeft size={28} strokeWidth={3} /></button>
             <div className="text-center">
               <h2 className="text-xl font-black text-teal-600 flex items-center gap-2 tracking-tighter"><BrainCircuit size={20} /> Ownly AI</h2>
-              <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Neural Link Established</p>
+              <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Your Personal Storage and Purchase Adviser</p>
             </div>
             <div className="w-10"></div>
           </header>
           <div className="flex-1 overflow-y-auto p-6 space-y-6 bg-slate-50/50">
             {chatMessages.map((m, i) => (
-              <div key={i} className={`flex ${m.role === 'user' ? 'justify-end' : 'justify-start'}`}>
+              <div key={i} className={`flex flex-col ${m.role === 'user' ? 'items-end' : 'items-start'}`}>
                 <div className={`max-w-[85%] p-5 rounded-[2rem] text-sm font-bold shadow-sm ${m.role === 'user' ? 'bg-teal-600 text-white rounded-tr-none' : 'bg-white text-slate-700 rounded-tl-none border border-slate-100'}`}>{m.content}</div>
+                
+                {/* Add Quick Prompts after the first assistant message if it's the start of the chat */}
+                {i === 0 && chatMessages.length === 1 && (
+                  <div className="w-full mt-6 space-y-3 animate-in fade-in slide-in-from-bottom duration-700 delay-300">
+                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest px-2">Quick Prompts</p>
+                    <div className="flex flex-col gap-2">
+                      {chatSuggestions.map((s, idx) => (
+                        <button 
+                          key={idx} 
+                          onClick={() => handleChatSubmit(undefined, s)}
+                          className="w-full text-left bg-white p-4 rounded-2xl border border-slate-100 shadow-sm hover:border-teal-300 hover:bg-teal-50 transition-all text-xs font-bold text-slate-600 flex items-center justify-between group"
+                        >
+                          <span className="flex-1 pr-4">{s}</span>
+                          <ArrowRight size={14} className="text-teal-400 opacity-0 group-hover:opacity-100 -translate-x-2 group-hover:translate-x-0 transition-all shrink-0" />
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
               </div>
             ))}
             <div ref={chatEndRef} />
