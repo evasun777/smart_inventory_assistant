@@ -1,10 +1,11 @@
+
 import { GoogleGenAI, Type } from "@google/genai";
 import { InventoryItem, Category } from "../types";
 
 // Always obtain the API key exclusively from the environment variable process.env.API_KEY.
 // Initialization should occur right before making a call to ensure the latest config is used.
 
-export const analyzeStoragePhoto = async (base64Image: string): Promise<Partial<InventoryItem>[]> => {
+export const analyzeStoragePhoto = async (base64Image: string): Promise<(Partial<InventoryItem> & { box_2d?: number[] })[]> => {
   const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
   const allowedCategories = Object.values(Category).join(", ");
   
@@ -19,7 +20,9 @@ export const analyzeStoragePhoto = async (base64Image: string): Promise<Partial<
           },
         },
         {
-          text: `Detect all items. Return JSON array: [{name, brand, color, size, description, category, price, storageLocation}]. Categories: [${allowedCategories}].`,
+          text: `Detect all individual items in this image. For each item, return a JSON object with its details and a bounding box [ymin, xmin, ymax, xmax] normalized to 1000. 
+          Return JSON array: [{name, brand, color, size, description, category, price, storageLocation, datePurchased, box_2d}]. 
+          Categories: [${allowedCategories}]. If you cannot determine a field, leave it as an empty string.`,
         },
       ],
     },
@@ -39,8 +42,14 @@ export const analyzeStoragePhoto = async (base64Image: string): Promise<Partial<
             category: { type: Type.STRING },
             price: { type: Type.NUMBER },
             storageLocation: { type: Type.STRING },
+            datePurchased: { type: Type.STRING, description: 'Format YYYY-MM-DD if known, otherwise empty' },
+            box_2d: { 
+              type: Type.ARRAY, 
+              items: { type: Type.NUMBER },
+              description: 'Normalized bounding box [ymin, xmin, ymax, xmax] from 0 to 1000'
+            },
           },
-          required: ["name", "category"],
+          required: ["name", "category", "box_2d"],
         },
       },
     },

@@ -36,7 +36,8 @@ import {
   Sparkles, 
   BrainCircuit, 
   Send,
-  Zap
+  Zap,
+  RotateCcw
 } from 'lucide-react-native';
 import { InventoryItem, Category, ChatMessage } from './types';
 import { loadInventory, saveInventory } from './services/storageService.native';
@@ -108,7 +109,7 @@ const AppNative = () => {
 
   const processInventoryPhoto = async (base64: string, uri: string) => {
     setIsLoading(true);
-    setLoadingStep('Neural Indexing...');
+    setLoadingStep('Accelerated Sync...');
     try {
       const detected = await analyzeStoragePhoto(base64);
       const mapped: InventoryItem[] = detected.map((d) => ({
@@ -188,7 +189,7 @@ const AppNative = () => {
         <Text style={styles.itemCategory}>{item.category}</Text>
         <Text style={styles.itemName} numberOfLines={1}>{item.name}</Text>
         <View style={styles.locationRow}>
-          <MapPin size={12} color="#6366f1" />
+          <MapPin size={12} color="#10b981" />
           <Text style={styles.locationText}>{item.storageLocation}</Text>
         </View>
       </View>
@@ -203,16 +204,16 @@ const AppNative = () => {
       <View style={styles.header}>
         <View style={styles.logoRow}>
           <View style={styles.logoBox}>
-            <Package size={20} color="#fff" strokeWidth={3} />
+            <Image source={{ uri: 'logo.png' }} style={styles.logoImage} />
           </View>
           <Text style={styles.logoText}>Ownly</Text>
         </View>
         <View style={styles.headerButtons}>
           <TouchableOpacity onPress={() => setIsChatOpen(true)} style={styles.iconBtn}>
-            <MessageSquare size={20} color="#6366f1" />
+            <MessageSquare size={20} color="#10b981" />
           </TouchableOpacity>
-          <TouchableOpacity onPress={() => setIsAdvisorOpen(true)} style={[styles.iconBtn, { backgroundColor: '#fff7ed' }]}>
-            <ShoppingCart size={20} color="#f59e0b" />
+          <TouchableOpacity onPress={() => setIsAdvisorOpen(true)} style={[styles.iconBtn, { backgroundColor: '#f0fdf4' }]}>
+            <ShoppingCart size={20} color="#059669" />
           </TouchableOpacity>
         </View>
       </View>
@@ -251,7 +252,7 @@ const AppNative = () => {
         contentContainerStyle={styles.listContent}
         ListEmptyComponent={
           <View style={styles.emptyContainer}>
-            <Package size={64} color="#e2e8f0" />
+            <Image source={{ uri: 'logo.png' }} style={{ width: 100, height: 100, opacity: 0.1, marginBottom: 20 }} />
             <Text style={styles.emptyText}>Vault is Empty</Text>
           </View>
         }
@@ -260,7 +261,7 @@ const AppNative = () => {
       {/* Bottom FABs */}
       <View style={styles.fabDock}>
         <TouchableOpacity style={styles.voiceFab} onPress={() => setIsChatOpen(true)}>
-          <Mic size={28} color="#6366f1" />
+          <Mic size={28} color="#10b981" />
         </TouchableOpacity>
         <TouchableOpacity style={styles.addFab} onPress={() => setIsAdding(true)}>
           <Plus size={40} color="#fff" />
@@ -311,8 +312,17 @@ const AppNative = () => {
       {/* Loading Overlay */}
       {isLoading && (
         <View style={styles.loadingOverlay}>
-          <ActivityIndicator size="large" color="#6366f1" />
-          <Text style={styles.loadingText}>{loadingStep}</Text>
+          <ActivityIndicator size="large" color="#10b981" />
+          <Text style={styles.loadingText}>Analyzing your belongings photo</Text>
+          <View style={{ marginTop: 40, width: '80%', gap: 15 }}>
+             <TouchableOpacity style={styles.retakeBtn} onPress={() => setIsLoading(false)}>
+                <RotateCcw size={18} color="#000" />
+                <Text style={{ fontWeight: '900', textTransform: 'uppercase', fontSize: 12 }}>Retake Photo</Text>
+             </TouchableOpacity>
+             <TouchableOpacity style={{ alignSelf: 'center' }} onPress={() => setIsLoading(false)}>
+                <Text style={{ color: '#94a3b8', fontWeight: '900', textTransform: 'uppercase', fontSize: 10 }}>Cancel</Text>
+             </TouchableOpacity>
+          </View>
         </View>
       )}
     </SafeAreaView>
@@ -323,8 +333,9 @@ const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#f8fafc' },
   header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', padding: 20, backgroundColor: '#fff' },
   logoRow: { flexDirection: 'row', alignItems: 'center' },
-  logoBox: { backgroundColor: '#6366f1', padding: 8, borderRadius: 12 },
-  logoText: { fontSize: 24, fontWeight: '900', marginLeft: 10, letterSpacing: -1 },
+  logoBox: { width: 45, height: 45, borderRadius: 12, backgroundColor: '#fff', padding: 2, borderWidth: 1, borderColor: '#f0fdf4', justifyContent: 'center', alignItems: 'center' },
+  logoImage: { width: '100%', height: '100%', borderRadius: 10 },
+  logoText: { fontSize: 24, fontWeight: '900', marginLeft: 10, letterSpacing: -1, color: '#064e3b' },
   headerButtons: { flexDirection: 'row', gap: 10 },
   iconBtn: { backgroundColor: '#f1f5f9', padding: 12, borderRadius: 15 },
   searchContainer: { padding: 20, backgroundColor: '#fff' },
@@ -333,30 +344,31 @@ const styles = StyleSheet.create({
   searchInput: { flex: 1, height: 50, fontWeight: '700' },
   catScroll: { marginTop: 15 },
   catBtn: { paddingHorizontal: 20, paddingVertical: 10, backgroundColor: '#fff', borderRadius: 12, marginRight: 10, borderWidth: 1, borderColor: '#e2e8f0' },
-  catBtnActive: { backgroundColor: '#6366f1', borderColor: '#6366f1' },
+  catBtnActive: { backgroundColor: '#10b981', borderColor: '#10b981' },
   catBtnText: { fontSize: 10, fontWeight: '900', color: '#94a3b8', textTransform: 'uppercase' },
   catBtnTextActive: { color: '#fff' },
   listContent: { padding: 15 },
   gridCard: { width: (width - 45) / 2, backgroundColor: '#fff', borderRadius: 25, marginBottom: 15, marginRight: 15, overflow: 'hidden', elevation: 2 },
   gridImage: { width: '100%', height: 150 },
   cardContent: { padding: 15 },
-  itemCategory: { fontSize: 8, fontWeight: '900', color: '#6366f1', textTransform: 'uppercase', marginBottom: 5 },
+  itemCategory: { fontSize: 8, fontWeight: '900', color: '#10b981', textTransform: 'uppercase', marginBottom: 5 },
   itemName: { fontSize: 14, fontWeight: '900' },
   locationRow: { flexDirection: 'row', alignItems: 'center', marginTop: 5, gap: 4 },
   locationText: { fontSize: 10, color: '#94a3b8', fontWeight: '800' },
   fabDock: { position: 'absolute', bottom: 30, width: '100%', flexDirection: 'row', justifyContent: 'center', alignItems: 'center', gap: 20 },
   voiceFab: { backgroundColor: '#fff', width: 60, height: 60, borderRadius: 30, justifyContent: 'center', alignItems: 'center', elevation: 10 },
-  addFab: { backgroundColor: '#6366f1', width: 80, height: 80, borderRadius: 40, justifyContent: 'center', alignItems: 'center', elevation: 15 },
+  addFab: { backgroundColor: '#10b981', width: 80, height: 80, borderRadius: 40, justifyContent: 'center', alignItems: 'center', elevation: 15 },
   emptyContainer: { alignItems: 'center', marginTop: 100 },
   emptyText: { color: '#cbd5e1', fontWeight: '900', marginTop: 20, fontSize: 18 },
-  loadingOverlay: { ...StyleSheet.absoluteFillObject, backgroundColor: 'rgba(0,0,0,0.8)', justifyContent: 'center', alignItems: 'center', zIndex: 100 },
-  loadingText: { color: '#fff', fontWeight: '900', marginTop: 20, textTransform: 'uppercase' },
+  loadingOverlay: { ...StyleSheet.absoluteFillObject, backgroundColor: 'rgba(0,0,0,0.92)', justifyContent: 'center', alignItems: 'center', zIndex: 100, padding: 40 },
+  loadingText: { color: '#fff', fontWeight: '900', marginTop: 20, textTransform: 'uppercase', textAlign: 'center', letterSpacing: 1 },
+  retakeBtn: { backgroundColor: '#fff', padding: 18, borderRadius: 20, flexDirection: 'row', justifyContent: 'center', alignItems: 'center', gap: 10, width: '100%' },
   modalOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'flex-end' },
   detailContainer: { backgroundColor: '#fff', borderTopLeftRadius: 40, borderTopRightRadius: 40, padding: 30, height: '85%' },
   modalHeader: { alignItems: 'flex-end', marginBottom: 10 },
   detailImage: { width: '100%', height: 300, borderRadius: 30 },
   detailBody: { marginTop: 25 },
-  detailBrand: { color: '#6366f1', fontWeight: '900', fontSize: 12, textTransform: 'uppercase', marginBottom: 5 },
+  detailBrand: { color: '#10b981', fontWeight: '900', fontSize: 12, textTransform: 'uppercase', marginBottom: 5 },
   detailName: { fontSize: 32, fontWeight: '900', letterSpacing: -1 },
   detailDesc: { color: '#64748b', fontSize: 16, marginTop: 10, lineHeight: 24 },
   detailMetaGrid: { flexDirection: 'row', gap: 15, marginTop: 25 },
